@@ -1,114 +1,130 @@
-import sys
+import gi
 
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QTextBrowser, QPushButton
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk
 
 from src.scripts.chatbot import ChatBot
 from src.scripts.config import *
 
 
-class ChatBotInterface(QWidget):
-    def __init__(self, chatbot):
-        """
-        Initializes the ChatBotInterface class by setting up the main window of the chatbot interface.
-
-        Parameters:
-        chatbot (ChatBot): The chatbot instance to use for generating responses.
-        """
-
-        super().__init__()
-
+class ChatBotInterface(Gtk.ApplicationWindow):
+    def __init__(self, chatbot, app):
+        super().__init__(application=app, title=APP_NAME)
+        self.set_default_size(400, 500)
         self.chatbot = chatbot
 
-        self.setWindowTitle(APP_NAME)
-        self.setGeometry(100, 100, 400, 500)
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        main_box.set_margin_top(6)
+        main_box.set_margin_bottom(6)
+        main_box.set_margin_start(6)
+        main_box.set_margin_end(6)
+        self.set_child(main_box)
 
-        layout = QVBoxLayout()
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_vexpand(True)
+        main_box.append(scrolled)
 
-        self.chat_display = QTextBrowser(self)
-        self.chat_display.setStyleSheet(f"""
-            background-color: {BACKGROUND_COLOR};
-            color: {TEXT_COLOR};
-            font-size: {FONT_SIZE};
-            padding: {PADDING};
-            border: 1px solid {BORDER_COLOR};
-            border-radius: {BORDER_RADIUS};
-                QScrollBar:vertical {{
-                background: {SCROLLBAR_BACKGROUND};
-                width: {SCROLLBAR_WIDTH};
+        self.chat_display = Gtk.TextView()
+        self.chat_display.set_editable(False)
+        self.chat_display.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.chat_display.set_left_margin(10)
+        self.chat_display.set_right_margin(10)
+        self.chat_display.set_top_margin(10)
+        self.chat_display.set_bottom_margin(10)
+        self.chat_buffer = self.chat_display.get_buffer()
+        scrolled.set_child(self.chat_display)
+
+        self.input_field = Gtk.Entry()
+        self.input_field.set_placeholder_text("Type your message...")
+        self.input_field.set_hexpand(True)
+        self.input_field.connect("activate", self.on_enter_pressed)
+        main_box.append(self.input_field)
+
+        self.send_button = Gtk.Button(label="Send")
+        self.send_button.add_css_class("suggested-action")
+        self.send_button.connect("clicked", self.on_send_clicked)
+        main_box.append(self.send_button)
+
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_string(
+            f"""
+            textview {{
+                background-color: {BACKGROUND_COLOR};
+                color: {TEXT_COLOR};
+                font-size: {FONT_SIZE};
+                border: 1px solid {BORDER_COLOR};
                 border-radius: {BORDER_RADIUS};
             }}
-            
-            QScrollBar::handle:vertical {{
+
+            textview text {{
+                background-color: {BACKGROUND_COLOR};
+                color: {TEXT_COLOR};
+            }}
+
+            entry {{
+                padding: {INPUT_FIELD_PADDING};
+                font-size: {FONT_SIZE};
+                border: 1px solid {INPUT_FIELD_BORDER_COLOR};
+                border-radius: {BORDER_RADIUS};
+            }}
+
+            button {{
+                background-color: {SEND_BUTTON_BACKGROUND};
+                color: {TEXT_COLOR};
+                padding: {SEND_BUTTON_PADDING};
+                font-size: {FONT_SIZE};
+                border-radius: {BORDER_RADIUS};
+            }}
+
+            scrollbar {{
+                background: {SCROLLBAR_BACKGROUND};
+                border-radius: {BORDER_RADIUS};
+            }}
+
+            scrollbar slider {{
                 background: {SCROLLBAR_HANDLE};
                 border-radius: {BORDER_RADIUS};
+                min-width: {SCROLLBAR_WIDTH};
             }}
-            
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-                background: none;
-            }}
-            
-            QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {{
-                background: none;
-            }}
-        """)
+        """
+        )
 
-        self.input_field = QLineEdit(self)
-        self.input_field.setPlaceholderText("Введите ваше сообщение...")
-        self.input_field.setStyleSheet(f"""
-            padding: {INPUT_FIELD_PADDING};
-            font-size: {FONT_SIZE};
-            border: 1px solid {INPUT_FIELD_BORDER_COLOR};
-        """)
-        self.input_field.returnPressed.connect(self.handle_user_input)
+        Gtk.StyleContext.add_provider_for_display(
+            self.get_display(),
+            css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+        )
 
-        self.send_button = QPushButton("Отправить")
-        self.send_button.setStyleSheet(f"""
-            background-color: {SEND_BUTTON_BACKGROUND};
-            color: {TEXT_COLOR};
-            padding: {SEND_BUTTON_PADDING};
-            font-size: {FONT_SIZE};
-            border: none;
-        """)
-        self.send_button.clicked.connect(self.handle_user_input)
+    def append_chat_message(self, label, text):
+        end_iter = self.chat_buffer.get_end_iter()
+        self.chat_buffer.insert_markup(end_iter, f"<b>{label}</b> {text}\n", -1)
 
-        layout.addWidget(self.chat_display)
-        layout.addWidget(self.input_field)
-        layout.addWidget(self.send_button)
+    def on_enter_pressed(self, entry):
+        self.handle_user_input()
 
-        self.setLayout(layout)
+    def on_send_clicked(self, button):
+        self.handle_user_input()
 
     def handle_user_input(self):
-        """
-        Handles user input by sending it to the chatbot to generate a response.
-
-        This method is called when the user presses the Enter key or the Send button.
-        It retrieves the text from the input field, sends it to the chatbot to generate a response,
-        and appends both the user's input and the chatbot's response to the chat display.
-        The input field is then cleared.
-        """
-
-        user_text = self.input_field.text().strip()
+        user_text = self.input_field.get_text().strip()
 
         if user_text:
-            self.chat_display.append(f"<b>Вы:</b> {user_text}")
+            self.append_chat_message("You:", user_text)
 
             bot_response = self.chatbot.respond(user_text)
 
-            self.chat_display.append(f"<b>Бот:</b> {bot_response}")
-            self.input_field.clear()
+            self.append_chat_message("Bot:", bot_response)
+            self.input_field.set_text("")
 
 
 def show_chatbot_interface(chatbot: ChatBot):
-    """
-    Launches the chatbot interface.
+    print("Launching chatbot GUI...")
 
-    Parameters:
-    chatbot (ChatBot): The chatbot to be used in the interface.
-    """
+    app = Gtk.Application(application_id="com.chatbot.mika")
 
-    print("Запуск приложения чат-бота.")
+    def on_activate(app):
+        window = ChatBotInterface(chatbot, app)
+        window.present()
 
-    app = QApplication(sys.argv)
-    window = ChatBotInterface(chatbot)
-    window.show()
-    sys.exit(app.exec())
+    app.connect("activate", on_activate)
+    app.run([])

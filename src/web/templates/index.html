@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,8 +9,8 @@
 <body>
     <div class="chat-container">
         <header>
-            <button id="theme-toggle">Переключить тему</button>
-            <h1>Чат с ботом Mika</h1>
+            <button id="theme-toggle">Toggle Theme</button>
+            <h1>Chat with Mika</h1>
         </header>
 
         <div id="chat-box-container">
@@ -19,12 +19,12 @@
         </div>
 
         <div class="input-container">
-            <input type="text" id="user-input" placeholder="Напишите ваше сообщение..."/>
-            <button id="send-btn" disabled>Отправить</button>
+            <input type="text" id="user-input" placeholder="Type your message..."/>
+            <button id="send-btn" disabled>Send</button>
         </div>
 
         <footer>
-            <p>&copy 2025 Chatbot AI - Mika. Все права защищены.</p>
+            <p>&copy; 2026 Chatbot AI - Mika. All rights reserved.</p>
         </footer>
     </div>
     <script>
@@ -58,7 +58,7 @@
             if (!userMessage.trim()) return
 
             chatBox.style.display = 'block'
-            chatBox.innerHTML += `<div class="user-message">Вы: ${userMessage}</div>`
+            chatBox.innerHTML += `<div class="user-message">You: ${userMessage}</div>`
 
             chatBox.scrollTop = chatBox.scrollHeight
 
@@ -78,9 +78,9 @@
             const data = await response.json()
 
             if (data.response) {
-                chatBox.innerHTML += `<div class="bot-message">Бот: ${data.response}</div>`
+                chatBox.innerHTML += `<div class="bot-message">Bot: ${data.response}</div>`
             } else {
-                chatBox.innerHTML += `<div class="bot-message">Бот: Я не понял ваш запрос.</div>`
+                chatBox.innerHTML += `<div class="bot-message">Bot: I didn't understand that.</div>`
             }
 
             chatBox.scrollTop = chatBox.scrollHeight

@@ -1,8 +1,10 @@
+import os
+
 import numpy as np
 import pickle
 
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.preprocessing import LabelEncoder
@@ -12,49 +14,38 @@ from src.scripts.preprocessing import preprocess_data, bow
 
 def create_model(input_size: int, output_size: int):
     """
-    Creates a model with the specified input and output size.
-
-    The model consists of a sequence of three layers: two dense layers with ReLU
-    activation and dropout, and a final dense layer with softmax activation.
-
-    Parameters:
-    input_size (int): The size of the input layer.
-    output_size (int): The size of the output layer.
-
-    Returns:
-    model (Sequential): The created model.
+    3-layer network with batch normalisation and dropout.
     """
-
     model = Sequential()
-    model.add(Dense(265, input_shape=(input_size,), activation="relu"))
+
+    model.add(Dense(256, input_shape=(input_size,), activation="relu"))
+    model.add(BatchNormalization())
     model.add(Dropout(0.4))
+
     model.add(Dense(128, activation="relu"))
-    model.add(Dropout(0.4))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.3))
+
     model.add(Dense(output_size, activation="softmax"))
+
     model.compile(
         loss="sparse_categorical_crossentropy",
         optimizer=Adam(learning_rate=0.001),
-        metrics=["accuracy"]
+        metrics=["accuracy"],
     )
-
     return model
 
 
-def load_or_train_model():
+def load_or_train_model(force_retrain=False):
     """
-    Loads a model, list of words, list of classes and a label encoder if all the necessary files exist.
-    Otherwise, preprocesses the data, creates a model, trains it, saves the model and the data, and returns everything.
-
-    Returns:
-    model (Sequential): The loaded or trained model.
-    words (list): The list of words.
-    classes (list): The list of classes.
-    label_encoder (LabelEncoder): The label encoder.
+    Loads a cached model or trains a new one from scratch.
     """
-
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    if all(os.path.exists(path) for path in [MODEL_PATH, WORDS_PATH, CLASSES_PATH, LABEL_ENCODER_PATH]):
+    if not force_retrain and all(
+        os.path.exists(path)
+        for path in [MODEL_PATH, WORDS_PATH, CLASSES_PATH, LABEL_ENCODER_PATH]
+    ):
         model = load_model(MODEL_PATH)
         words = pickle.load(open(WORDS_PATH, "rb"))
         classes = pickle.load(open(CLASSES_PATH, "rb"))
@@ -71,13 +62,18 @@ def load_or_train_model():
         pickle.dump(label_encoder, open(LABEL_ENCODER_PATH, "wb"))
 
         model = create_model(len(words), len(classes))
-        early_stopping = EarlyStopping(monitor="accuracy", patience=MODEL_PATIENCE, restore_best_weights=True)
+
+        early_stopping = EarlyStopping(
+            monitor="loss", patience=50, restore_best_weights=True
+        )
 
         model.fit(
             np.array(training_data),
             np.array(training_labels),
-            epochs=MODEL_EPOCHS, batch_size=5, verbose=1,
-            callbacks=[early_stopping]
+            epochs=500,
+            batch_size=32,
+            verbose=1,
+            callbacks=[early_stopping],
         )
 
         model.save(MODEL_PATH)

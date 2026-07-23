@@ -26,6 +26,8 @@ INTENTS = json.load(open(INTENTS_PATH, "r", encoding="utf-8"))["intents"]
 MODEL_EPOCHS = 1000
 MODEL_PATIENCE = 100
 
+CONFIDENCE_THRESHOLD = 0.30
+
 BACKGROUND_COLOR = "black"
 TEXT_COLOR = "white"
 FONT_SIZE = "14px"

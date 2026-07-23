@@ -4,6 +4,11 @@
 /specs/
 /inno/
 
+nltk_data/
+.venv/
+.direnv/
+.envrc
+
 .env
 start.bat
 user.json

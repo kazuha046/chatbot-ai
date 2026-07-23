@@ -39,7 +39,7 @@ def get_weather(city: str, lang: str, units: str):
                 "humidity": humidity,
                 "pressure": pressure,
                 "wind_speed": wind_speed,
-                "wind_deg": wind_deg
+                "wind_deg": wind_deg,
             }
 
         else:

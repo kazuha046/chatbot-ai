@@ -10,20 +10,20 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="mika")
 
-    parser.add_argument("--no-gui", action="store_true", help="Запуск без GUI")
-    parser.add_argument("--gui", action="store_true", help="Запуск GUI")
-    parser.add_argument("--web", action="store_true", help="Запуск в веб-режиме")
+    parser.add_argument("--no-gui", action="store_true", help="Run in console mode")
+    parser.add_argument("--gui", action="store_true", help="Run with GUI")
+    parser.add_argument("--web", action="store_true", help="Run in web mode")
     parser.add_argument(
         "--set-default",
         choices=["gui", "no-gui", "web"],
-        help="Установить значение по умолчанию для интерфейса"
+        help="Set default interface mode",
     )
 
     args = parser.parse_args()
 
     if args.set_default:
         save_setting(args.set_default, "mode")
-        print(f"Настройки по умолчанию изменены на: {args.set_default}")
+        print(f"Default mode set to: {args.set_default}")
         exit(0)
 
     setting = load_setting()
@@ -34,15 +34,15 @@ if __name__ == "__main__":
         start_bot_web()
     elif args.gui:
         start_bot_gui()
-    elif setting["mode"] == "no-gui":
+    elif setting and setting.get("mode") == "no-gui":
         start_bot()
-    elif setting["mode"] == "web":
+    elif setting and setting.get("mode") == "web":
         start_bot_web()
-    elif setting["mode"] == "gui":
+    elif setting and setting.get("mode") == "gui":
         start_bot_gui()
     else:
         sys.exit(
-            f"Неверное значение интерфейса по умолчанию: {setting}. "
-            f"Для установки нового значения, используйте --set-default <значение>. "
-            f"Доступные значения: gui, no-gui, web"
+            f"Invalid default interface mode: {setting}. "
+            f"Use --set-default <mode> to set a new default. "
+            f"Available modes: gui, no-gui, web"
         )

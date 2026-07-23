@@ -1,81 +1,60 @@
 import re
+
 import nltk
-import pickle
-
+import spacy
 from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-from src.scripts.config import INTENTS, WORDS_PATH, CLASSES_PATH
 
-nltk.download("punkt")
-nltk.download("stopwords")
+from src.scripts.config import INTENTS
 
-lemmatizer = WordNetLemmatizer()
+nltk.download("punkt", quiet=True)
+nltk.download("punkt_tab", quiet=True)
+nltk.download("stopwords", quiet=True)
+
+_nlp = spacy.load("ru_core_news_lg")
+_russian_stopwords = set(stopwords.words("russian"))
+
+
+def tokenize_and_lemmatize(sentence: str):
+    """Tokenize with spaCy and lemmatize (Russian only)."""
+    sentence = re.sub(r"[^\w\s]", "", sentence)
+    doc = _nlp(sentence.lower())
+
+    tokens = []
+    for token in doc:
+        if token.text in _russian_stopwords or token.is_punct or token.is_space:
+            continue
+        tokens.append(token.lemma_)
+    return tokens
 
 
 def clean_up_sentence(sentence: str):
-    """
-    Cleans up a given sentence by tokenizing it, lemmatizing its words and converting them to lower case.
-
-    Parameters:
-    sentence (str): The sentence to clean up.
-
-    Returns:
-    list: A list of lower case lemmatized words from the sentence.
-    """
-
-    sentence = re.sub(r'[^\w\s]', '', sentence)
-    sentence_words = nltk.word_tokenize(sentence)
-    stop_words = set(stopwords.words("russian"))
-
-    return [lemmatizer.lemmatize(w.lower()) for w in sentence_words if w.lower() not in stop_words]
+    """Public wrapper for tokenization."""
+    return tokenize_and_lemmatize(sentence)
 
 
 def bow(sentence: str, words: list):
-    """
-    Creates a bag-of-words representation of a sentence based on a predefined list of words.
-
-    Parameters:
-    sentence (str): The input sentence to be converted into a bag-of-words.
-    words (list): A list of words to use as the vocabulary for the bag-of-words.
-
-    Returns:
-    list: A list of 0s and 1s representing the presence or absence of each word in the input sentence.
-    """
-
-    sentence_words = clean_up_sentence(sentence)
+    """Bag-of-words vector."""
+    sentence_words = tokenize_and_lemmatize(sentence)
     return [1 if w in sentence_words else 0 for w in words]
 
 
 def preprocess_data():
     """
-    Preprocesses the data for training a chatbot model. This involves
-
-    1. Tokenizing all words from the patterns of the intents.
-    2. Removing stopwords from the list of words.
-    3. Lemmatizing all words.
-    4. Removing duplicates from the list of words.
-    5. Storing the words and classes in a file using pickle.
-
-    Returns:
-        tuple: A tuple of three elements: a list of words, a list of classes and a list of documents.
+    Tokenises all patterns, lemmatises with spaCy, removes Russian
+    stopwords, deduplicates, and returns (words, classes, documents).
     """
-
     words, classes, documents = [], [], []
 
     for intent in INTENTS:
         for pattern in intent["patterns"]:
-            word_list = nltk.word_tokenize(pattern)
-            words.extend(word_list)
+            tokens = tokenize_and_lemmatize(pattern)
+            words.extend(tokens)
             documents.append((pattern, intent["tag"]))
 
         if intent["tag"] not in classes:
             classes.append(intent["tag"])
 
-    words = [lemmatizer.lemmatize(w.lower()) for w in words if w not in nltk.corpus.stopwords.words("russian")]
-    words = sorted(list(set(words)))
-    classes = sorted(list(set(classes)))
-
-    pickle.dump(words, open(WORDS_PATH, "wb"))
-    pickle.dump(classes, open(CLASSES_PATH, "wb"))
+    words = sorted(set(words))
+    classes = sorted(set(classes))
 
     return words, classes, documents

@@ -4,50 +4,32 @@ from src.scripts.web import open_chatbot_web
 
 
 def start_bot_web():
-    """
-    Starts the chatbot in web mode.
-
-    This function initializes the chatbot and shows the chatbot web-interface.
-    """
-
-    print("Запуск чат-бота в веб-режиме.")
+    """Starts the chatbot in web mode."""
+    print("Starting chatbot in web mode...")
     open_chatbot_web()
 
 
 def start_bot_gui():
-    """
-    Starts the chatbot in GUI mode.
-
-    This function initializes the chatbot and shows the chatbot interface.
-    """
-
-    print("Запуск чат-бота в графическом интерфейсе.")
+    """Starts the chatbot in GUI mode."""
+    print("Starting chatbot in GUI mode...")
     chatbot = ChatBot()
     show_chatbot_interface(chatbot)
 
 
 def start_bot():
-    """
-    Starts the chatbot in console mode.
-
-    This function prints a greeting message and enters an infinite loop where it
-    waits for user input. If the user enters an empty string, it asks for input again.
-    If the user enters "exit", the loop is broken and the function returns. Otherwise,
-    the chatbot's response is printed to the console.
-    """
-
-    print("Запуск чат-бота в консоли. Введите 'выход' для завершения.")
+    """Starts the chatbot in console mode."""
+    print("Starting chatbot in console mode. Type 'exit' to quit.")
     chatbot = ChatBot()
 
     while True:
-        user_input = input("Вы: ")
+        user_input = input("You: ")
 
         if not user_input:
-            print("Я вас не понимаю. Пожалуйста, повторите ввод.")
+            print("Please enter a message.")
             continue
 
-        if user_input.lower() == "выход":
+        if user_input.lower() in ("exit", "quit", "выход"):
             break
 
         bot_response = chatbot.respond(user_input)
-        print(f"Бот: {bot_response}")
+        print(f"Bot: {bot_response}")
