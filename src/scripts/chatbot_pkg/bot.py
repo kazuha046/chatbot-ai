@@ -6,6 +6,7 @@ import string
 import numpy as np
 
 from src.scripts.chatbot_pkg.context import ConversationContext
+from src.scripts.chatbot_pkg.context_handlers import handle_followup
 from src.scripts.chatbot_pkg.filters import is_gibberish
 from src.scripts.chatbot_pkg.keywords import (
     handle_calculator,
@@ -16,6 +17,8 @@ from src.scripts.chatbot_pkg.keywords import (
     handle_weather,
 )
 from src.scripts.chatbot_pkg.ner import NERExtractor
+from src.scripts.chatbot_pkg.notes import handle_notes
+from src.scripts.chatbot_pkg.utils import handle_translate, handle_uuid
 from src.scripts.config import CONFIDENCE_THRESHOLD, INTENTS
 from src.scripts.model import load_or_train_model
 from src.scripts.preprocessing import bow
@@ -120,6 +123,7 @@ class ChatBot:
         }
 
         response = random.choice(fallbacks.get(reason, fallbacks["low_confidence"]))
+
         self.context.append("user", sentence, None)
         self.context.append("bot", response, None)
 
@@ -129,7 +133,8 @@ class ChatBot:
         """Process a user message and return the bot's response.
 
         Applies keyword-based pre-checks first (weather, date, time,
-        random number, calculator, name recall), then falls back to
+        random number, calculator, name, notes, reminders, translate,
+        system info, UUID, hash, convert), then falls back to
         the neural network classifier.
 
         Args:
@@ -147,6 +152,9 @@ class ChatBot:
             ("random_number", lambda: handle_random_number(sentence)),
             ("calculator", lambda: handle_calculator(sentence)),
             ("user_name", lambda: handle_user_name(sentence)),
+            ("notes", lambda: handle_notes(sentence)),
+            ("translate", lambda: handle_translate(sentence)),
+            ("uuid", lambda: handle_uuid(sentence)),
         ]
 
         for intent_tag, handler in keyword_handlers:
@@ -157,6 +165,16 @@ class ChatBot:
                 self.context.append("bot", result, intent_tag)
 
                 return result
+
+        # --- Follow-up detection (before input validation) ---
+
+        followup_response = handle_followup(sentence, self.context)
+
+        if followup_response:
+            self.context.append("user", sentence, "followup")
+            self.context.append("bot", followup_response, "followup")
+
+            return followup_response
 
         # --- Input validation ---
 
@@ -205,6 +223,7 @@ class ChatBot:
                 response += f" {random.choice(intent['emoji'])}"
 
             self.context.append("bot", response, tag)
+
             return response
 
         return self._make_fallback(sentence)

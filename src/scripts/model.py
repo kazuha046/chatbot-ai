@@ -96,13 +96,13 @@ def load_or_train_model(force_retrain=False):
         model = create_model(len(words), len(classes))
 
         early_stopping = EarlyStopping(
-            monitor="loss", patience=50, restore_best_weights=True
+            monitor="loss", patience=MODEL_PATIENCE, restore_best_weights=True
         )
 
         model.fit(
             numpy.array(training_data),
             numpy.array(training_labels),
-            epochs=500,
+            epochs=MODEL_EPOCHS,
             batch_size=32,
             verbose=1,
             callbacks=[early_stopping],

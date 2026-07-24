@@ -56,10 +56,10 @@ with open(INTENTS_PATH, "r", encoding="utf-8") as _f:
     INTENTS = json.load(_f)["intents"]
 """Loaded intents data from intents.json."""
 
-MODEL_EPOCHS = 1000
+MODEL_EPOCHS = 10000
 """Maximum training epochs for the neural network."""
 
-MODEL_PATIENCE = 100
+MODEL_PATIENCE = 500
 """Early stopping patience (epochs without improvement)."""
 
 CONFIDENCE_THRESHOLD = 0.30
