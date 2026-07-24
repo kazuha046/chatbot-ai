@@ -7,6 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.direnv" />
       <excludeFolder url="file://$MODULE_DIR$/.direnv/flake-inputs" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/nltk_data" />
     </content>
     <orderEntry type="jdk" jdkName="uv (chatbot-ai)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

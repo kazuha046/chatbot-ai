@@ -12,3 +12,7 @@ nltk_data/
 .env
 start.bat
 user.json
+
+__pycache__/
+*.py[cod]
+*$py.class
