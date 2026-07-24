@@ -1,6 +1,12 @@
+"""Flask web application for the Mika chatbot.
+
+Exposes a REST API endpoint for chat messages and serves the
+HTML/CSS/JS web interface.
+"""
+
 from flask import Flask, jsonify, render_template, request
 
-from src.scripts.chatbot import ChatBot
+from src.scripts.chatbot_pkg import ChatBot
 
 app = Flask(__name__)
 chatbot = ChatBot()

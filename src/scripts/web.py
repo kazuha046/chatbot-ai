@@ -1,17 +1,19 @@
+"""Web server launcher for the Flask-based chatbot interface.
+
+Starts the Flask development server and opens the chat UI in a browser.
+"""
+
 import threading
 import webbrowser
 
 from src.web.app import app
 
 
-def open_chatbot_web():
-    """
-    Opens the chatbot web interface in a browser.
+def open_chatbot_web() -> None:
+    """Start the Flask server and open the chat interface in a browser.
 
-    This function starts the Flask web server for the chatbot web interface
-    and opens the web interface in a browser. The web interface is available
-    at http://127.0.0.1:5000.
+    Launches the server on http://127.0.0.1:5000 and opens a browser
+    tab after a 1-second delay to allow the server to start.
     """
-
     threading.Timer(1, lambda: webbrowser.open("http://127.0.0.1:5000")).start()
     app.run(debug=False)

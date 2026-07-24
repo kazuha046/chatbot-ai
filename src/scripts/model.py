@@ -1,3 +1,10 @@
+"""Neural network model creation, training, and caching.
+
+Provides functions to build a 3-layer Keras classifier, train it on
+preprocessed intent data, and cache/load the trained artifacts.
+"""
+
+import os
 import pickle
 
 import numpy
@@ -12,8 +19,18 @@ from src.scripts.preprocessing import bow, preprocess_data
 
 
 def create_model(input_size: int, output_size: int):
-    """
-    3-layer network with batch normalisation and dropout.
+    """Create a 3-layer neural network with batch normalization and dropout.
+
+    Architecture: Dense(256) → BatchNorm → Dropout(0.4) →
+                  Dense(128) → BatchNorm → Dropout(0.3) →
+                  Dense(output_size, softmax)
+
+    Args:
+        input_size: Length of the bag-of-words vocabulary vector.
+        output_size: Number of intent classes to classify.
+
+    Returns:
+        Compiled Keras Sequential model ready for training.
     """
     model = Sequential()
 
@@ -37,8 +54,18 @@ def create_model(input_size: int, output_size: int):
 
 
 def load_or_train_model(force_retrain=False):
-    """
-    Loads a cached model or trains a new one from scratch.
+    """Load a cached model or train a new one from scratch.
+
+    If all cached artifacts (model, words, classes, label encoder) exist
+    and force_retrain is False, loads them from disk. Otherwise,
+    preprocesses the intents data, trains the model with early stopping,
+    and saves all artifacts.
+
+    Args:
+        force_retrain: If True, always retrain even if cache exists.
+
+    Returns:
+        Tuple of (model, words, classes, label_encoder).
     """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 

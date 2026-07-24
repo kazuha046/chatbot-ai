@@ -1,4 +1,9 @@
-from src.scripts.chatbot import ChatBot
+"""Entry points for launching the chatbot in different modes.
+
+Provides functions to start the bot in console, GTK4 GUI, or web interface.
+"""
+
+from src.scripts.chatbot_pkg import ChatBot
 from src.scripts.gui import show_chatbot_interface
 from src.scripts.web import open_chatbot_web
 
