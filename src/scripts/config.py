@@ -22,7 +22,9 @@ WORDS = []
 CLASSES = []
 DOCUMENTS = []
 
-INTENTS = json.load(open(INTENTS_PATH, "r", encoding="utf-8"))["intents"]
+with open(INTENTS_PATH, "r", encoding="utf-8") as _f:
+    INTENTS = json.load(_f)["intents"]
+
 MODEL_EPOCHS = 1000
 MODEL_PATIENCE = 100
 

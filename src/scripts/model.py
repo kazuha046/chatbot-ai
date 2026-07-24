@@ -1,15 +1,14 @@
-import os
-
-import numpy as np
 import pickle
 
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
+import numpy
 from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.layers import BatchNormalization, Dense, Dropout
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.optimizers import Adam
+
 from src.scripts.config import *
-from src.scripts.preprocessing import preprocess_data, bow
+from src.scripts.preprocessing import bow, preprocess_data
 
 
 def create_model(input_size: int, output_size: int):
@@ -33,6 +32,7 @@ def create_model(input_size: int, output_size: int):
         optimizer=Adam(learning_rate=0.001),
         metrics=["accuracy"],
     )
+
     return model
 
 
@@ -47,9 +47,13 @@ def load_or_train_model(force_retrain=False):
         for path in [MODEL_PATH, WORDS_PATH, CLASSES_PATH, LABEL_ENCODER_PATH]
     ):
         model = load_model(MODEL_PATH)
-        words = pickle.load(open(WORDS_PATH, "rb"))
-        classes = pickle.load(open(CLASSES_PATH, "rb"))
-        label_encoder = pickle.load(open(LABEL_ENCODER_PATH, "rb"))
+
+        with open(WORDS_PATH, "rb") as f:
+            words = pickle.load(f)
+        with open(CLASSES_PATH, "rb") as f:
+            classes = pickle.load(f)
+        with open(LABEL_ENCODER_PATH, "rb") as f:
+            label_encoder = pickle.load(f)
     else:
         words, classes, documents = preprocess_data()
 
@@ -59,7 +63,8 @@ def load_or_train_model(force_retrain=False):
         label_encoder = LabelEncoder()
         training_labels = label_encoder.fit_transform(training_labels)
 
-        pickle.dump(label_encoder, open(LABEL_ENCODER_PATH, "wb"))
+        with open(LABEL_ENCODER_PATH, "wb") as f:
+            pickle.dump(label_encoder, f)
 
         model = create_model(len(words), len(classes))
 
@@ -68,8 +73,8 @@ def load_or_train_model(force_retrain=False):
         )
 
         model.fit(
-            np.array(training_data),
-            np.array(training_labels),
+            numpy.array(training_data),
+            numpy.array(training_labels),
             epochs=500,
             batch_size=32,
             verbose=1,
@@ -77,7 +82,10 @@ def load_or_train_model(force_retrain=False):
         )
 
         model.save(MODEL_PATH)
-        pickle.dump(words, open(WORDS_PATH, "wb"))
-        pickle.dump(classes, open(CLASSES_PATH, "wb"))
+
+        with open(WORDS_PATH, "wb") as f:
+            pickle.dump(words, f)
+        with open(CLASSES_PATH, "wb") as f:
+            pickle.dump(classes, f)
 
     return model, words, classes, label_encoder

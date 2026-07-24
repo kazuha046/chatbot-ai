@@ -1,4 +1,5 @@
 import os
+
 import requests
 
 
@@ -44,6 +45,6 @@ def get_weather(city: str, lang: str, units: str):
 
         else:
             return None
-    except Exception as e:
+    except requests.RequestException as e:
         print(e)
         return None

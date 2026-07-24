@@ -20,10 +20,13 @@ def tokenize_and_lemmatize(sentence: str):
     doc = _nlp(sentence.lower())
 
     tokens = []
+
     for token in doc:
         if token.text in _russian_stopwords or token.is_punct or token.is_space:
             continue
+
         tokens.append(token.lemma_)
+
     return tokens
 
 
@@ -40,7 +43,7 @@ def bow(sentence: str, words: list):
 
 def preprocess_data():
     """
-    Tokenises all patterns, lemmatises with spaCy, removes Russian
+    Tokenizes all patterns, lemmatizes with spaCy, removes Russian
     stopwords, deduplicates, and returns (words, classes, documents).
     """
     words, classes, documents = [], [], []

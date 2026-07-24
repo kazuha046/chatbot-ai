@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
+
 from src.scripts.chatbot import ChatBot
 
 app = Flask(__name__)

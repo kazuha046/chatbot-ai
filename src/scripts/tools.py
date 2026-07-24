@@ -12,6 +12,7 @@ def start_bot_web():
 def start_bot_gui():
     """Starts the chatbot in GUI mode."""
     print("Starting chatbot in GUI mode...")
+
     chatbot = ChatBot()
     show_chatbot_interface(chatbot)
 

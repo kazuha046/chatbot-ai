@@ -2,6 +2,7 @@ import argparse
 import sys
 
 from dotenv import load_dotenv
+
 from src.scripts.settings import load_setting, save_setting
 from src.scripts.tools import start_bot, start_bot_gui, start_bot_web
 
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     if args.set_default:
         save_setting(args.set_default, "mode")
         print(f"Default mode set to: {args.set_default}")
-        exit(0)
+        sys.exit(0)
 
     setting = load_setting()
 

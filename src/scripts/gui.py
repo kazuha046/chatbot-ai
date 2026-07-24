@@ -1,6 +1,7 @@
 import gi
 
 gi.require_version("Gtk", "4.0")
+
 from gi.repository import Gtk
 
 from src.scripts.chatbot import ChatBot
@@ -10,6 +11,7 @@ from src.scripts.config import *
 class ChatBotInterface(Gtk.ApplicationWindow):
     def __init__(self, chatbot, app):
         super().__init__(application=app, title=APP_NAME)
+
         self.set_default_size(400, 500)
         self.chatbot = chatbot
 
@@ -99,10 +101,10 @@ class ChatBotInterface(Gtk.ApplicationWindow):
         end_iter = self.chat_buffer.get_end_iter()
         self.chat_buffer.insert_markup(end_iter, f"<b>{label}</b> {text}\n", -1)
 
-    def on_enter_pressed(self, entry):
+    def on_enter_pressed(self):
         self.handle_user_input()
 
-    def on_send_clicked(self, button):
+    def on_send_clicked(self):
         self.handle_user_input()
 
     def handle_user_input(self):
@@ -122,8 +124,8 @@ def show_chatbot_interface(chatbot: ChatBot):
 
     app = Gtk.Application(application_id="com.chatbot.mika")
 
-    def on_activate(app):
-        window = ChatBotInterface(chatbot, app)
+    def on_activate(_app):
+        window = ChatBotInterface(chatbot, _app)
         window.present()
 
     app.connect("activate", on_activate)
